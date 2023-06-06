@@ -1,0 +1,188 @@
+closeall; clear;
+
+# get results from the analysis groups
+mname="grating_transmission";
+T=getresult(mname,"T");
+T_grating=getresult(mname,"T_grating");
+T_num_order=getresult(mname,"num_orders");
+#mname="grating_reflection";
+#R=getresult(mname,"T");
+#R_grating=getresult(mname,"T_grating");
+#R_num_order=getresult(mname,"num_orders");
+f=T.f;
+lambda_sim=c/f;
+
+###############################################
+#0. get solar spectrum
+###############################################
+# get solar spectrum as a function of wavelength
+lambda_s= solar(0);  # units of m
+#lambda=lambda(length(lambda):-1:1);
+ssp    = solar(1);  # units of W/m^2/nm
+#ssp=ssp(length(ssp):-1:1);
+
+# trim solar spectrum data to range of simulation data
+lmin = find(lambda_s,min(lambda_sim));
+lmax = find(lambda_s,max(lambda_sim));
+lambda_s = lambda_s(lmin:lmax);
+ssp = ssp(lmin:lmax);
+
+
+################################################
+# 1. Number of diffraction orders vs. wavelength
+################################################
+
+#plot
+#plot(T.lambda*1e6,T_num_order.num_orders,R_num_order.num_orders,"wavelength (um)","Number of supported orders","","linewidth = 2");
+#setplot("x min",0.3);setplot("x max",0.7);
+plot(T.lambda*1e6,T_num_order.num_orders,"wavelength (um)","Number of supported orders","Diffraction orders per wavelength","linewidth = 2");
+setplot("x min",0.2);setplot("x max",1);
+#legend("Transmission","Reflection");
+legend("Transmission");
+
+#############################################################################################
+# 2. Fraction of transmitted/reflected power into a specific diffraction order vs. wavelength
+#############################################################################################
+
+# (0,0) order
+n_target = 0; 
+m_target = 0;
+
+T_00 = pinch( pinch(T_grating.T_grating,1,find(T_grating.n,n_target)) ,1,find(T_grating.m,m_target));
+#R_00 = pinch( pinch(R_grating.T_grating,1,find(R_grating.n,n_target)) ,1,find(R_grating.m,m_target));
+#(0,1) order
+n_target_1 = 0; 
+m_target_1 = 1;
+T_01 = pinch( pinch(T_grating.T_grating,1,find(T_grating.n,n_target_1)) ,1,find(T_grating.m,m_target_1));
+#R_01 = pinch( pinch(R_grating.T_grating,1,find(R_grating.n,n_target_1)) ,1,find(R_grating.m,m_target_1));
+#(1,0)
+n_target_2 = 1; 
+m_target_2 = 0;
+T_10 = pinch( pinch(T_grating.T_grating,1,find(T_grating.n,n_target_2)) ,1,find(T_grating.m,m_target_2));
+#R_10 = pinch( pinch(R_grating.T_grating,1,find(R_grating.n,n_target_2)) ,1,find(R_grating.m,m_target_2));
+
+#(-1,0)
+n_target_3 = -1; 
+m_target_3 = 0;
+T_minus10 = pinch( pinch(T_grating.T_grating,1,find(T_grating.n,n_target_3)) ,1,find(T_grating.m,m_target_3));
+#R_minus10 = pinch( pinch(R_grating.T_grating,1,find(R_grating.n,n_target_3)) ,1,find(R_grating.m,m_target_3));
+
+#(0,-1)
+n_target_4 = 0; 
+m_target_4 = -1;
+T_0minus1 = pinch( pinch(T_grating.T_grating,1,find(T_grating.n,n_target_4)) ,1,find(T_grating.m,m_target_4));
+#R_0minus1 = pinch( pinch(R_grating.T_grating,1,find(R_grating.n,n_target_4)) ,1,find(R_grating.m,m_target_4));
+
+
+#plot
+#plot(c/T.f*1e6,T.T,T_00,-R.T,R_00,-R.T+T.T,"Wavelength (um)","Transmission","","linewidth=2");
+
+#plot T and T(0,0)
+plot(c/T.f*1e6,-T.T,T_00,"Wavelength (um)","Transmission","Transmission into diffraction orders","linewidth=2");
+legend("T",
+       "T ("+num2str(n_target)+","+num2str(m_target)+")");
+setplot("x min",0.2);setplot("x max",1);
+
+#plot orders  -10, 0-1
+#plot(c/T.f*1e6,T_minus10,T_0minus1,"Wavelength (um)","Transmission","Transmission into diffraction orders","linewidth=2");
+#legend(
+#       "T ("+num2str(n_target_3)+","+num2str(m_target_3)+")",
+#       "T ("+num2str(n_target_4)+","+num2str(m_target_4)+")");
+#setplot("x min",0.2);setplot("x max",1);
+
+#plot orders 01 and 10
+#plot(c/T.f*1e6,T_01, T_10,"Wavelength (um)","Transmission","Transmission into diffraction orders","linewidth=2");
+#legend(
+#       "T ("+num2str(n_target_1)+","+num2str(m_target_1)+")",
+#       "T ("+num2str(n_target_2)+","+num2str(m_target_2)+")");
+#setplot("x min",0.2);setplot("x max",1);
+
+#plot(c/T.f*1e6,T_01, T_10,T_minus10,T_0minus1,"Wavelength (um)","Transmission","Transmission into diffraction orders","linewidth=2");
+#legend(
+#       "T ("+num2str(n_target_1)+","+num2str(m_target_1)+")",
+#       "T ("+num2str(n_target_2)+","+num2str(m_target_2)+")",
+#       "T ("+num2str(n_target_3)+","+num2str(m_target_3)+")",
+#       "T ("+num2str(n_target_4)+","+num2str(m_target_4)+")");
+#setplot("x min",0.2);setplot("x max",1);
+
+
+#plot(c/T.f*1e6, -T.T,T_00,T_01, T_10,T_minus10,T_0minus1,"Wavelength (um)","Transmission","Transmission into diffraction orders","linewidth=2");
+#legend("T Total",
+#       "T ("+num2str(n_target)+","+num2str(m_target)+")",
+#       "T ("+num2str(n_target_1)+","+num2str(m_target_1)+")",
+#       "T ("+num2str(n_target_2)+","+num2str(m_target_2)+")",
+#       "T ("+num2str(n_target_3)+","+num2str(m_target_3)+")",
+#       "T ("+num2str(n_target_4)+","+num2str(m_target_4)+")");
+#setplot("x min",0.2);setplot("x max",1);
+
+#########################################################################################
+# 3. Diffraction angle 
+# a specific diffraction order vs. wavelength
+#########################################################################################
+
+ #(1,0) order
+n_target = 0; 
+m_target = 1;
+theta_01 = pinch( pinch(T_grating.theta,1,find(T_grating.n,n_target)) ,1,find(T_grating.m,m_target));
+phi_01   = pinch( pinch(T_grating.phi,1,find(T_grating.n,n_target)) ,1,find(T_grating.m,m_target));
+
+#plot
+plot(c/T.f*1e6,theta_01,phi_01,"Wavelength (um)","Diffraction angle for ("+num2str(n_target)+","+num2str(m_target)+") order","","linewidth=2");
+legend("Theta","Phi");
+setplot("x min",0.2);setplot("x max",1);
+setplot("y min",40);setplot("y max",200);
+
+#(0,1) order
+n_target = 1; 
+m_target = 0;
+theta_10 = pinch( pinch(T_grating.theta,1,find(T_grating.n,n_target)) ,1,find(T_grating.m,m_target));
+phi_10   = pinch( pinch(T_grating.phi,1,find(T_grating.n,n_target)) ,1,find(T_grating.m,m_target));
+
+#####################################################################################################
+# 4. Diffraction efficincies and angles for all supported diffraction orders at a specific wavelength
+#####################################################################################################
+
+target_wavelength = 4.99e-6; #
+fi = find(f,c/target_wavelength);
+
+?"Transmitted orders in u1(x) direction at " + num2str(target_wavelength*1e6) + " um : " + num2str(transpose(T_grating.n));
+?"Transmitted orders in u2(y) direction at " + num2str(target_wavelength*1e6) + " um : " + num2str(transpose(T_grating.m));
+
+#?"Reflected orders in u1(x) direction at " + num2str(target_wavelength*1e6) + " um : " + num2str(transpose(R_grating.n));
+#?"Reflected orders in u2(y) direction at " + num2str(target_wavelength*1e6) + " um : " + num2str(transpose(R_grating.m));
+
+#T_nm = pinch(T_grating.T_grating,3,fi);
+#theta_T_nm = pinch(T_grating.theta,3,fi);
+#phi_T_nm = pinch(T_grating.phi,3,fi);
+
+#R_nm = pinch(R_grating.T_grating,3,fi);
+#theta_R_nm = pinch(R_grating.theta,3,fi);
+#phi_R_nm = pinch(R_grating.phi,3,fi);
+
+# polar image of diffraction orders
+#res =5;   # Number of points for the polar image
+            # Note: grating orders will appear as a point in the polar plot.
+            # Setting this value too large might result in the grating orders unrecognizable
+#T_nm_new = matrix(res,res)+1e-18;
+#u1 = pinch( pinch(T_grating.U1,3,fi) ,2,1);
+#u2 = pinch( pinch(T_grating.U2,3,fi) ,1,1);
+#u1_new = linspace(-1,1,res); #(-1,1,res); urspr.
+#u2_new = linspace(-1,1,res);
+#u1i = find(u1_new,u1);
+#u2i = find(u2_new,u2);
+#T_nm_new(u1i,u2i) = T_nm;  
+#image log10(T_nm_new);
+#image(u1_new,u2_new,log(T_nm_new),"u1","u2","Transmitted orders at "+num2str(c/f(fi)*1e6)+"um (log scale)","polar plot");
+#setplot("colorbar min",-10);setplot("colorbar max",2);
+
+#R_nm_new = matrix(res,res)+1e-18;
+#u1 = pinch( pinch(R_grating.U1,3,fi) ,2,1);
+#u2 = pinch( pinch(R_grating.U2,3,fi) ,1,1);
+#u1_new = linspace(-1,1,res);
+#u2_new = linspace(-1,1,res);
+#u1i = find(u1_new,u1);
+#u2i = find(u2_new,u2);
+#R_nm_new(u1i,u2i) = R_nm;  
+#image
+#image(u1_new,u2_new,log10(R_nm_new),"u1","u2","Reflected orders at "+num2str(c/f(fi)*1e6)+"um (log scale)","polar plot");
+#setplot("colorbar min",-5);setplot("colorbar max",0);
